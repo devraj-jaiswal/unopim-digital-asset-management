@@ -3,15 +3,19 @@
 namespace Webkul\DAM\Helpers\Importers\Product;
 
 use Webkul\DAM\Models\Asset;
+use Webkul\DAM\Repositories\AssetRepository;
 use Webkul\DataTransfer\Helpers\Importers\Product\Importer as ProductImporter;
 
 class Importer extends ProductImporter
 {
+    protected $assetRepository;
+
     /**
      * {@inheritdoc}
      */
     public function prepareAttributeValues(array $rowData, array &$attributeValues): void
     {
+        $this->assetRepository = app(AssetRepository::class);
         $familyAttributes = $this->getProductTypeFamilyAttributes($rowData['type'], $rowData[self::ATTRIBUTE_FAMILY_CODE]);
         $imageDirPath = $this->import->images_directory_path;
 
@@ -36,6 +40,15 @@ class Importer extends ProductImporter
             }
 
             if ($attribute->type === Asset::ASSET_ATTRIBUTE_TYPE) {
+                if (!empty($value)) {
+                    $asset = $this->assetRepository->findWhereIn('path', [$value])->first();
+
+                    if ($asset) {
+                        $value = $asset->id;
+
+                        $attribute->setProductValue($value, $attributeValues, $rowData['channel'] ?? null, $rowData['locale'] ?? null);
+                    };
+                }
                 continue;
             }
 

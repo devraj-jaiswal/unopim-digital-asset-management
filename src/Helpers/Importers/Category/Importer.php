@@ -3,15 +3,19 @@
 namespace Webkul\DAM\Helpers\Importers\Category;
 
 use Webkul\DAM\Models\Asset;
+use Webkul\DAM\Repositories\AssetRepository;
 use Webkul\DataTransfer\Helpers\Importers\Category\Importer as CategoryImporter;
 
 class Importer extends CategoryImporter
 {
+    protected $assetRepository;
     /**
      * {@inheritdoc}
      */
     public function prepareCategories(array $rowData, array &$categories): void
     {
+        $this->assetRepository = app(AssetRepository::class);
+
         $isCategory = $this->isCategoryExist($rowData['code']);
 
         $categoryValues = $categories['update'][$rowData['code']]['additional_data'] ?? [];
@@ -38,12 +42,19 @@ class Importer extends CategoryImporter
             $catalogField = $this->categoryFieldRepository->where('code', $field)->first();
 
             if ($catalogField->type === Asset::ASSET_ATTRIBUTE_TYPE) {
+                if (!empty($value)) {
+                    $asset = $this->assetRepository->findWhereIn('path', [$value])->first();
+
+                    if ($asset) {
+                        $data['additional_data']['common'][$field] = $asset->id;
+                    };
+                }
                 continue;
             }
 
             $value = $this->fieldProcessor->handleField($catalogField, $value, $imageDirPath);
 
-            if ($catalogField->value_per_locale === self::VALUE_PER_LOCALE) {
+            if ($catalogField->value_per_locale) {
                 $locale = $rowData['locale'] ?? null;
                 if ($locale) {
                     $data['additional_data']['locale_specific'][$locale][$field] = $value;
