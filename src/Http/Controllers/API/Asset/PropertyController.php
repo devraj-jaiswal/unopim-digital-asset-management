@@ -80,12 +80,13 @@ class PropertyController extends Controller
             ], 400);
         }
 
-        $property = $this->assetPropertyRepository->create(array_merge(request()->only([
-            'name',
-            'type',
-            'language',
-            'value',
-        ]), ['dam_asset_id' => $id]));
+        $property = $this->assetPropertyRepository->create([
+            'name'         => request('name'),
+            'type'         => request('type'),
+            'language'     => $locale->id,
+            'value'        => request('value'),
+            'dam_asset_id' => $id,
+        ]);
 
         return response()->json([
             'success'  => true,
@@ -113,7 +114,7 @@ class PropertyController extends Controller
         }
 
         try {
-            $updatedProperty = $this->assetPropertyRepository->update($request->only(['value']), $id);
+            $updatedProperty = $this->assetPropertyRepository->update($request->only(['name', 'value']), $id);
 
             return response()->json([
                 'success'  => true,
