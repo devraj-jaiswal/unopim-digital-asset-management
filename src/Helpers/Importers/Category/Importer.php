@@ -43,11 +43,22 @@ class Importer extends CategoryImporter
 
             if ($catalogField->type === Asset::ASSET_ATTRIBUTE_TYPE) {
                 if (!empty($value)) {
-                    $asset = $this->assetRepository->findWhereIn('path', [$value])->first();
+                    $values = explode(',', $value);
 
-                    if ($asset) {
-                        $data['additional_data']['common'][$field] = $asset->id;
-                    };
+                    $assets = [];
+                    foreach($values as $value) {
+                        $asset = $this->assetRepository->findWhereIn('path', [trim($value)])->first();
+                        
+                        if ($asset) {
+                            $assets[] = $asset->id;
+                        };
+                    }
+
+                    if ($assets) {
+                        $value = implode(',', $assets);
+
+                        $data['additional_data']['common'][$field] = $value;
+                    }
                 }
                 continue;
             }

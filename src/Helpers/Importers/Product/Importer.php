@@ -41,10 +41,19 @@ class Importer extends ProductImporter
 
             if ($attribute->type === Asset::ASSET_ATTRIBUTE_TYPE) {
                 if (!empty($value)) {
-                    $asset = $this->assetRepository->findWhereIn('path', [$value])->first();
+                    $values = explode(',', $value);
 
-                    if ($asset) {
-                        $value = $asset->id;
+                    $assets = [];
+                    foreach($values as $value) {
+                        $asset = $this->assetRepository->findWhereIn('path', [trim($value)])->first();
+                        
+                        if ($asset) {
+                            $assets[] = $asset->id;
+                        };
+                    }
+
+                    if ($assets) {
+                        $value = implode(',', $assets);
 
                         $attribute->setProductValue($value, $attributeValues, $rowData['channel'] ?? null, $rowData['locale'] ?? null);
                     };
