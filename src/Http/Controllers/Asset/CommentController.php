@@ -8,7 +8,6 @@ use Webkul\Admin\Http\Controllers\Controller;
 use Webkul\DAM\Repositories\AssetCommentsRepository;
 use Webkul\DAM\Repositories\AssetRepository;
 use Webkul\User\Repositories\AdminRepository;
-use Webkul\User\Repositories\RoleRepository;
 
 class CommentController extends Controller
 {
@@ -19,7 +18,6 @@ class CommentController extends Controller
         protected AssetRepository $assetRepository,
         protected AssetCommentsRepository $assetCommentRepository,
         protected AdminRepository $adminRepository,
-        protected RoleRepository $roleRepository,
     ) {}
 
     /**
@@ -41,14 +39,12 @@ class CommentController extends Controller
     {
         $user = $this->adminRepository->findOrFail($id);
 
-        $roles = $this->roleRepository->all();
 
         $timezone = ['id' => $user?->timezone, 'label' => $user?->timezone];
 
         return new JsonResponse([
-            'roles'    => $roles,
             'user'     => [
-                ...$user->toArray(),
+                'name' => $user->name,
                 'status' => (bool) $user->status,
             ],
             'timezone' => $timezone,

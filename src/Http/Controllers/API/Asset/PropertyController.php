@@ -100,10 +100,6 @@ class PropertyController extends Controller
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        $this->validate($request, [
-            'value' => 'required',
-        ]);
-
         $property = $this->assetPropertyRepository->find($id);
 
         if (! $property) {
@@ -112,6 +108,11 @@ class PropertyController extends Controller
                 'message' => trans('dam::app.admin.dam.asset.properties.index.not-found'),
             ], 404);
         }
+
+        $this->validate($request, [
+            'name'  => 'required|min:3|max:100|unique:dam_asset_properties,name,'.$id.',id,dam_asset_id,'.$property->dam_asset_id,
+            'value' => 'required',
+        ]);
 
         try {
             $updatedProperty = $this->assetPropertyRepository->update($request->only(['name', 'value']), $id);
